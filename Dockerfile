@@ -18,7 +18,7 @@ RUN CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o portscan .
 FROM gcr.io/distroless/static:nonroot
 
 # Copy the binary from the builder stage
-COPY --from=builder /app/portscan /portscan
+COPY --from=builder --chmod=755 /app/portscan /portscan
 
 # Use the nonroot user provided by the distroless image
 USER nonroot:nonroot
