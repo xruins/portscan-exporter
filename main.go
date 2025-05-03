@@ -65,7 +65,7 @@ var (
 			Help:    "Time taken to scan each port in seconds",
 			Buckets: prometheus.ExponentialBuckets(0.001, 2, 10), // From 1ms to ~1s
 		},
-		[]string{"target", "port", "status"},
+		[]string{"target"},
 	)
 	// New metric for the last completed scan timestamp
 	lastScanTimestamp = prometheus.NewGaugeVec(
@@ -237,7 +237,7 @@ func scanTarget(target string, startPort, endPort, maxConcurrent int, timeout ti
 
 			// Record duration in the histogram
 			portLabel := fmt.Sprintf("%d", p)
-			portScanDuration.WithLabelValues(target, portLabel, status.String()).Observe(duration.Seconds())
+			portScanDuration.WithLabelValues(target).Observe(duration.Seconds())
 
 			// Update counters using atomic operations
 			switch status {
