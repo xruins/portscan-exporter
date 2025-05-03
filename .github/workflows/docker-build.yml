@@ -17,7 +17,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: scan-exporter
+      IMAGE_NAME: xruins/scan-exporter
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Set up Docker Buildx
