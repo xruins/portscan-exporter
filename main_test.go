@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -76,14 +77,18 @@ func TestScanPort(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			port := 0
+			var port string
 			if tt.name == "open port" {
 				_, port, _ = net.SplitHostPort(listener.Addr().String())
 			} else {
-				port = 45678 // A port that's usually closed
+				port = "45678" // A port that's usually closed
 			}
 
-			status, duration := scanPort(tt.target, port, tt.timeout)
+			p, err := strconv.Atoi(port) // Convert port string to int for testing
+			if err != nil {
+				t.Fatalf("Failed to convert port string to int: %v", err)
+			}
+			status, duration := scanPort(tt.target, p, tt.timeout)
 			if status != tt.want {
 				t.Errorf("scanPort() status = %v, want %v", status, tt.want)
 			}

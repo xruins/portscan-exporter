@@ -83,21 +83,7 @@ var (
 		},
 		[]string{"target", "status"},
 	)
-	// New counter metrics for scan statistics
-	scanSuccessTotal = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "portscan_success_total",
-			Help: "Total number of successful scan operations",
-		},
-		[]string{"target"},
-	)
-	scanFailureTotal = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "portscan_failure_total",
-			Help: "Total number of failed scan operations",
-		},
-		[]string{"target"},
-	)
+	// Counter for total completed scans
 	scanCompletedTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "portscan_completed_total",
@@ -116,8 +102,6 @@ func init() {
 	prometheus.MustRegister(portScanDuration)
 	prometheus.MustRegister(lastScanTimestamp)
 	prometheus.MustRegister(scanStatus)
-	prometheus.MustRegister(scanSuccessTotal)
-	prometheus.MustRegister(scanFailureTotal)
 	prometheus.MustRegister(scanCompletedTotal)
 }
 
@@ -228,7 +212,6 @@ func main() {
 func scanTarget(target string, startPort, endPort, maxConcurrent int, timeout time.Duration) {
 	ctx := context.Background()
 	startTime := time.Now()
-	var scanErr error
 
 	slog.LogAttrs(ctx, slog.LevelInfo, "Starting scan",
 		slog.String("target", target),
@@ -286,19 +269,7 @@ func scanTarget(target string, startPort, endPort, maxConcurrent int, timeout ti
 	// Update last scan timestamp (in Unix time - seconds since epoch)
 	lastScanTimestamp.WithLabelValues(target).Set(float64(time.Now().Unix()))
 
-	// Update scan status metrics
-	if scanErr != nil {
-		scanStatus.WithLabelValues(target, "success").Set(0)
-		scanStatus.WithLabelValues(target, "failed").Set(1)
-		scanFailureTotal.WithLabelValues(target).Inc() // Increment failure counter
-		slog.Error("Scan failed", "target", target, "error", scanErr)
-	} else {
-		scanStatus.WithLabelValues(target, "success").Set(1)
-		scanStatus.WithLabelValues(target, "failed").Set(0)
-		scanSuccessTotal.WithLabelValues(target).Inc() // Increment success counter
-	}
-
-	// Increment total completed scans counter (regardless of success/failure)
+	// Increment total completed scans counter
 	scanCompletedTotal.WithLabelValues(target).Inc()
 
 	slog.LogAttrs(ctx, slog.LevelInfo, "Scan completed",
