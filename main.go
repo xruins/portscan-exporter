@@ -247,7 +247,6 @@ func scanTarget(target string, startPort, endPort, maxConcurrent int, timeout ti
 				slog.Debug("Port is open", "target", target, "port", p, "duration", duration)
 			case PortClosed:
 				closedCount.Add(1)
-				openPortStatus.WithLabelValues(target, portLabel).Set(0)
 			case PortFiltered:
 				filteredCount.Add(1)
 				// No need to set individual filtered ports
