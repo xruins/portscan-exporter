@@ -91,6 +91,26 @@ var (
 		},
 		[]string{"target"},
 	)
+
+	// New gauge metrics for configuration values
+	scanTimeoutMetric = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "portscan_scan_timeout_seconds",
+			Help: "Timeout for port connection attempts in seconds",
+		},
+	)
+	scanIntervalMetric = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "portscan_scan_interval_seconds",
+			Help: "Interval between scans in seconds",
+		},
+	)
+	initialDelayMetric = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "portscan_initial_delay_seconds",
+			Help: "Delay before first scan starts in seconds",
+		},
+	)
 )
 
 func init() {
@@ -103,6 +123,11 @@ func init() {
 	prometheus.MustRegister(lastScanTimestamp)
 	prometheus.MustRegister(scanStatus)
 	prometheus.MustRegister(scanCompletedTotal)
+
+	// Register new configuration metrics
+	prometheus.MustRegister(scanTimeoutMetric)
+	prometheus.MustRegister(scanIntervalMetric)
+	prometheus.MustRegister(initialDelayMetric)
 }
 
 type PortStatus int
@@ -165,6 +190,11 @@ func main() {
 
 	// Set up logger based on command-line arguments
 	setupLogger(*logFormat, *logLevel)
+
+	// Set configuration metrics values
+	scanTimeoutMetric.Set((*scanTimeout).Seconds())
+	scanIntervalMetric.Set((*scanInterval).Seconds())
+	initialDelayMetric.Set((*initialDelay).Seconds())
 
 	// Parse targets using strings.Split directly
 	targetList := strings.Split(*targets, ",")
